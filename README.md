@@ -1,38 +1,40 @@
 # Font Manager
 
-> **Work in progress.** Belum ada rilis; belum diuji di perangkat. Build sendiri dari sumber (lihat di bawah).
+> **Work in progress.** No release yet and not yet tested on a device. Build it from source (see below).
 
-Aplikasi Android sederhana (Jetpack Compose, Material 3 Expressive) untuk Googlebook / gbOS86:
+A simple Android app (Jetpack Compose, Material 3 Expressive) for Googlebook / gbOS86:
 
-- Memindai **Download** beserta subfoldernya (folder bisa diganti) untuk mencari `.ttf`, `.otf`, `.ttc`/`.otc`, `.woff`, `.woff2`.
-- Membuka arsip **zip, 7z, tar, tar.gz/tgz, tar.xz, tar.bz2** dan mengambil font di dalamnya (sampah `__MACOSX` dilewati). RAR tidak didukung.
-- **Memindahkan (cut)** font ke folder font lokal, lalu menampilkan font terpasang dengan pratinjau dan tombol hapus.
+- Scans **Download** and its subfolders (the folder can be changed) for `.ttf`, `.otf`, `.ttc`/`.otc`, `.woff`, `.woff2`.
+- Opens **zip, 7z, tar, tar.gz/tgz, tar.xz, tar.bz2** archives and takes the fonts out (`__MACOSX` junk is skipped). RAR is not supported.
+- **Moves (cuts)** fonts into a local fonts folder, then lists the installed fonts with a preview and a delete button.
 
-## Folder font: `/storage/emulated/0/.fonts`
+The app's UI is in Indonesian.
 
-Ini padanan `~/.fonts` di Android. "Home" pengguna di Android adalah penyimpanan internal (`/storage/emulated/0`, alias `/sdcard`). Font disimpan apa adanya (ttf/otf/ttc/woff/woff2) seperti yang dibaca fontconfig di Linux, jadi folder ini siap dipakai kalau suatu saat Android/Googlebook membaca font per pengguna. Saat ini Android sendiri **belum** memakai folder ini. Font di sini hanya terlihat dan bisa dipratinjau di aplikasi ini. Tidak perlu root.
+## Fonts folder: `/storage/emulated/0/.fonts`
 
-Cara melihat isi folder tersembunyi `.fonts`:
+This is Android's counterpart of `~/.fonts`. A user's "home" on Android is internal shared storage (`/storage/emulated/0`, also `/sdcard`). Fonts are stored as-is (ttf/otf/ttc/woff/woff2), the way fontconfig reads them on Linux, so the folder is ready if Android/Googlebook ever reads per-user fonts. Android itself does **not** use this folder today: fonts there are only visible and previewable in this app. No root needed.
 
-- **Di aplikasi:** tab **Terpasang** menampilkan semua font di folder itu (termasuk subfolder) dengan pratinjau.
-- **Aplikasi Files:** menu ⋮ → *Settings* → nyalakan **Show hidden files**, lalu buka *Internal storage* → `.fonts`.
-- **Lewat adb dari Fedora:** `adb shell ls -la /sdcard/.fonts`
+Seeing what's in the hidden `.fonts` folder:
 
-Aturan pemindahan:
+- **In the app:** the **Terpasang** (Installed) tab lists every font in the folder (subfolders included) with a preview.
+- **Files app:** ⋮ menu → *Settings* → turn on **Show hidden files**, then open *Internal storage* → `.fonts`.
+- **Over adb from a computer:** `adb shell ls -la /sdcard/.fonts`
 
-- Font lepas dipindah (bukan disalin). Kalau di `.fonts` sudah ada berkas dengan nama dan ukuran sama, berkas sumber dihapus dan dihitung "sudah ada". Kalau namanya sama tapi isinya beda, font baru disimpan dengan akhiran `-2`, `-3`, dst.
-- Font dari arsip diekstrak. Arsipnya dibiarkan, kecuali sakelar **Hapus arsip setelah fontnya diambil** dinyalakan.
-- Folder tersembunyi (yang namanya diawali `.`) tidak ikut dipindai.
+How moving works:
 
-Catatan:
+- Loose font files are moved, not copied. If `.fonts` already has a file with the same name and size, the source is deleted and counted as "already there". Same name but different content: the new font is saved with a `-2`, `-3`, … suffix.
+- Fonts inside archives are extracted. The archive is kept unless the **Hapus arsip setelah fontnya diambil** (delete archive after taking its fonts) switch is on.
+- Hidden folders (names starting with `.`) are not scanned.
 
-- **Izin:** saat pertama dibuka, aplikasi meminta **Akses semua file** (Android 11+). Ketuk *Buka pengaturan izin*, nyalakan, lalu kembali ke aplikasi.
-- **WOFF2** ikut dipindah, tapi tidak bisa dipratinjau karena Android tidak memuat WOFF2. WOFF 1.0 dipratinjau lewat konversi sementara di cache.
-- **Ganti folder:** pemilih folder Android tidak mengizinkan memilih akar penyimpanan atau folder Download itu sendiri. Pilih subfolder, atau pakai *Kembali ke Download*. Folder di SSD/flashdisk juga bisa (`/storage/XXXX-XXXX/...`).
+Notes:
+
+- **Permission:** on first launch the app asks for **All files access** (Android 11+). Tap *Buka pengaturan izin* (open permission settings), turn it on, and come back to the app.
+- **WOFF2** fonts are moved but can't be previewed, because Android can't load WOFF2. WOFF 1.0 is previewed through a temporary conversion in the app's cache.
+- **Changing the folder:** Android's folder picker won't let you pick the storage root or the Download folder itself. Pick a subfolder, or use *Kembali ke Download* (back to Download). Folders on an SSD or USB drive work too (`/storage/XXXX-XXXX/...`).
 
 ## Build (Fedora)
 
-Butuh JDK 17+ (Fedora: `java-25-openjdk` sudah cukup) dan Android SDK dengan platform `android-37.0` dan build-tools. `local.properties` menunjuk ke `~/Android/Sdk`. Gradle diunduh otomatis oleh wrapper.
+Needs JDK 17+ (Fedora's `java-25-openjdk` is fine) and the Android SDK with platform `android-37.0` and build-tools. Create `local.properties` with `sdk.dir=/home/<you>/Android/Sdk`. The Gradle wrapper downloads Gradle itself.
 
 ```bash
 cd ~/Git/font-manager
@@ -42,35 +44,35 @@ cd ~/Git/font-manager
 ./gradlew assembleRelease
 ```
 
-Hasilnya `app/build/outputs/apk/release/app-release.apk` (sekitar 2,6 MB, ditandatangani kunci debug supaya langsung bisa dipasang). Versi debug: `./gradlew assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`.
+The output is `app/build/outputs/apk/release/app-release.apk` (about 2.6 MB, signed with the debug key so it installs directly). Debug build: `./gradlew assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`.
 
-Tes logika pemindaian/ekstraksi (memakai font sistem Fedora di `/usr/share/fonts`):
+Tests for the scanning/extraction logic (they use Fedora's system fonts in `/usr/share/fonts` as test data):
 
 ```bash
 ./gradlew testDebugUnitTest
 ```
 
-Kalau SDK belum ada di mesin lain: unduh *command-line tools* dari developer.android.com ke `~/Android/Sdk/cmdline-tools/latest`, lalu jalankan `sdkmanager "platforms;android-37.0" "build-tools;36.0.0" "platform-tools"` (tanpa sudo).
+No SDK yet: download the *command-line tools* from developer.android.com into `~/Android/Sdk/cmdline-tools/latest`, then run `sdkmanager "platforms;android-37.0" "build-tools;36.0.0" "platform-tools"` (no sudo needed).
 
-## Pasang ke Googlebook
+## Install on the Googlebook
 
-Nyalakan USB debugging di Googlebook (adbd mendengarkan di TCP 5555), lalu dari Fedora:
+Turn on USB debugging on the Googlebook (adbd listens on TCP 5555), then from the other computer:
 
 ```bash
-adb connect <ip-googlebook>:5555
+adb connect <googlebook-ip>:5555
 ```
 
-Atau lewat kabel Thunderbolt: `adb connect 10.42.0.2:5555`. Setelah itu:
+Over a Thunderbolt cable the address is `10.42.0.2:5555`. Then:
 
 ```bash
 adb install -r app/build/outputs/apk/release/app-release.apk
 ```
 
-Kalau ada lebih dari satu perangkat terhubung, tambahkan `-s <ip>:5555` setelah `adb`.
+With more than one device connected, add `-s <ip>:5555` after `adb`.
 
-## Struktur kode
+## Code layout
 
-- `FontStore.kt`: memindai folder, membaca arsip, memindahkan/mengekstrak ke `.fonts`.
-- `FontFiles.kt`: membaca nama font dari tabel `name`, konversi WOFF → TTF/OTF untuk pratinjau.
-- `FontViewModel.kt`: state aplikasi dan pengaturan (folder pindai, hapus arsip).
-- `FontManagerApp.kt`: UI (ButtonGroup/ToggleButton, SegmentedListItem, LoadingIndicator, ExtendedFAB).
+- `FontStore.kt`: scans folders, reads archives, moves/extracts into `.fonts`.
+- `FontFiles.kt`: reads the font name from the `name` table, converts WOFF → TTF/OTF for previews.
+- `FontViewModel.kt`: app state and settings (scan folder, delete archives).
+- `FontManagerApp.kt`: the UI (ButtonGroup/ToggleButton, SegmentedListItem, LoadingIndicator, ExtendedFAB).
